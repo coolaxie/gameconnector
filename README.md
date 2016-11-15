@@ -1,0 +1,2 @@
+# gameconnector
+gateway for game
