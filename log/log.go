@@ -1,10 +1,10 @@
 package log
 
 var (
-	DebugReporter func(string, ...interface{})
+	DebugReporter   func(string, ...interface{})
 	ReleaseReporter func(string, ...interface{})
-	ErrorReporter func(string, ...interface{})
-	FatalReporter func(string, ...interface{})
+	ErrorReporter   func(string, ...interface{})
+	FatalReporter   func(string, ...interface{})
 )
 
 func Debug(format string, v ...interface{}) {
@@ -30,4 +30,3 @@ func Fatal(format string, v ...interface{}) {
 		FatalReporter(format, v...)
 	}
 }
-

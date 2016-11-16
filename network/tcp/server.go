@@ -12,7 +12,6 @@ type TCPServer struct {
 	Addr  string
 	ln    net.Listener
 	conns ConnSet
-
 }
 
 func (s *TCPServer) Start() {
@@ -64,6 +63,15 @@ func (s *TCPServer) run() {
 			time.Sleep(delay)
 		}
 
-		s.conns[conn] = struct {}{}
+		s.conns[conn] = struct{}{}
+		agent := newAgent(conn)
+
+		go func() {
+			agent.Run()
+
+			conn.Close()
+			delete(s.conns, conn)
+		}()
+
 	}
 }

@@ -3,20 +3,24 @@ package gate
 import "github.com/coolaxie/gameconnector/network/tcp"
 
 type Gate struct {
-	TCPAddrs []string
+	TCPAddr string
+	KCPAddr string
 }
 
 func (g *Gate) Run(closeSig chan bool) {
-	tcpServers := make([]*tcp.TCPServer, len(g.TCPAddrs))
-	for i := 0; i < len(g.TCPAddrs); i++ {
-		tcpServers[i] = new(tcp.TCPServer)
-		tcpServers[i].Addr = g.TCPAddrs[i]
-		tcpServers[i].Start()
+	var tcpServer *tcp.TCPServer
+	if g.TCPAddr != "" {
+		tcpServer = new(tcp.TCPServer)
+		tcpServer.Addr = g.TCPAddr
+	}
+
+	if tcpServer != nil {
+		tcpServer.Start()
 	}
 
 	<-closeSig
 
-	for i := 0; i < len(tcpServers); i++ {
-		tcpServers[i].Close()
+	if tcpServer != nil {
+		tcpServer.Close()
 	}
 }
