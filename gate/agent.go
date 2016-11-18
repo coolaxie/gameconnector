@@ -3,6 +3,8 @@ package gate
 import (
 	"github.com/coolaxie/gameconnector/log"
 	"github.com/coolaxie/gameconnector/network/tcp"
+	"errors"
+	"io"
 )
 
 type TCPAgent struct {
@@ -20,11 +22,15 @@ func (a *TCPAgent) Run() {
 	for {
 		data, err := a.conn.ReadMsg()
 		if err != nil {
-			log.Error("read error(%v)", err)
+			if err == io.EOF {
+				log.Release("client(%v) closed", a.conn.RemoteAddr())
+			} else {
+				log.Error("client(%v) read error(%v)", a.conn.RemoteAddr(), err)
+			}
 			break
 		}
 
 		//TODO transfer message
-		log.Release("received message(%v)", string(data))
+		log.Release("received message(%v) from %v", string(data), a.conn.RemoteAddr())
 	}
 }
