@@ -3,15 +3,18 @@ package tcp
 import (
 	"github.com/coolaxie/gameconnector/log"
 	"net"
+	"sync"
 	"time"
 )
 
 type ConnSet map[net.Conn]struct{}
 
 type TCPServer struct {
-	Addr  string
-	ln    net.Listener
-	conns ConnSet
+	Addr       string
+	ln         net.Listener
+	conns      ConnSet
+	mutexConns sync.Mutex
+	NewAgent   func(*TCPConn) Agent
 }
 
 func (s *TCPServer) Start() {
@@ -30,6 +33,10 @@ func (s *TCPServer) Close() {
 }
 
 func (s *TCPServer) init() {
+	if s.NewAgent == nil {
+		log.Fatal("must give NewAgent")
+	}
+
 	s.conns = make(ConnSet)
 
 	ln, err := net.Listen("tcp", s.Addr)
@@ -63,14 +70,22 @@ func (s *TCPServer) run() {
 			time.Sleep(delay)
 		}
 
+		log.Release("clinet(%v) connected", conn.RemoteAddr().String())
+
+		s.mutexConns.Lock()
 		s.conns[conn] = struct{}{}
-		agent := newAgent(conn)
+		s.mutexConns.Unlock()
+
+		tcpConn := NewTCPConn(conn)
+		agent := s.NewAgent(tcpConn)
 
 		go func() {
 			agent.Run()
 
-			conn.Close()
+			tcpConn.Close()
+			s.mutexConns.Lock()
 			delete(s.conns, conn)
+			s.mutexConns.Unlock()
 		}()
 
 	}

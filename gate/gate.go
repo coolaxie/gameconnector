@@ -12,6 +12,7 @@ func (g *Gate) Run(closeSig chan bool) {
 	if g.TCPAddr != "" {
 		tcpServer = new(tcp.TCPServer)
 		tcpServer.Addr = g.TCPAddr
+		tcpServer.NewAgent = newTCPAgent
 	}
 
 	if tcpServer != nil {
@@ -24,3 +25,5 @@ func (g *Gate) Run(closeSig chan bool) {
 		tcpServer.Close()
 	}
 }
+
+
